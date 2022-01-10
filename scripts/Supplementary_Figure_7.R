@@ -27,73 +27,77 @@ load("./RDS/deg_results_deseq2.RData")
 
 ####################################
 # Data transformations and visualization
-####################################
-# Data transformations and visualization
 norm_counts<-get.norm_dds(dds_NoFib)
 
 norm_counts<-getHGNC(norm_counts)
 
-#################
-# PCR Validation
-#################
-# Import PCR data
-pcr<-read.csv("./inputs/table.csv", sep = ",", header = TRUE, row.names = 1)
-
-pcr$Cells<-sapply(strsplit(as.character(row.names(pcr)), "-"), "[[", 2 )
-
-pcr<-pcr[ , c("CD28", "CCR7", "CD79B", "FCMR", "PAX5", "ELF3", "MAL2", "MUC1", "TFAP2A", "GPR37", "Cells")]
-
-require(reshape2)
-
-pcr.m <- melt(pcr, id.var = "Cells")
-
-expt_plot<-ggplot(data = pcr.m, aes(x=variable, y=value)) + geom_boxplot(aes(fill=Cells)) +
-  stat_compare_means(aes(group = Cells), method = "t.test", label = "p.format", size= 2)
-  
-expt2<-expt_plot+labs(x ="", y = "log2(normalized value) qRT-PCR")+scale_fill_manual(breaks = c("TC", "TIL"),
-                                                                                     values=c("brown", "violet")) +
-  theme(axis.text.x = element_text(face = "bold.italic", angle=0, vjust=0.5, hjust=0.5)) +
-  theme_classic() +
-  annotate("rect", xmin=-Inf, xmax=5.5, ymin=-Inf, ymax=Inf, fill = "violet", alpha = 0.1)
-
-#####################
-# Boxplot Salmon
+###########################################
+# Extra Figures and tables
 #####################
 
 #Get ID of selected marker genes
-tc_markers<-c("CD28", "CCR7", "CD79B", "FCMR", "PAX5", "ELF3", "MAL2", "MUC1", "TFAP2A", "GPR37")
+#co_stimulation_tcells markers
+
+co_stimulation_markers<-c("CD2", "CD27", "CD28", "CD40LG", "CD226", 
+                          "TNFSF14", "TNFRSF4", "TNFRSF8", "TNFRSF9","TNFRSF18", "TNFRSF25",
+                           "ICOS","SLAMF1")
 
 #normalized data for selected ids
-tc_markers_counts<-norm_counts[tc_markers, ]
+co_stimulation_markers_counts<-norm_counts[co_stimulation_markers, ]
 
-tc_markers_counts<-t(tc_markers_counts)
+co_stimulation_markers_counts<-t(co_stimulation_markers_counts)
 
-tc_markers_counts<-as.data.frame(tc_markers_counts)
+co_stimulation_markers_counts<-as.data.frame(co_stimulation_markers_counts)
 
-tc_markers_counts$Cells<-sapply(strsplit(as.character(row.names(tc_markers_counts)), "_"), "[[", 2 )
+co_stimulation_markers_counts$Cells<-sapply(strsplit(as.character(row.names(co_stimulation_markers_counts)), "_"), "[[", 2 )
 
-tc_markers_counts.m <- melt(tc_markers_counts, id.var = "Cells")
+co_stimulation_markers_counts.m <- melt(co_stimulation_markers_counts, id.var = "Cells")
 
-rnaseq<-ggplot(data = tc_markers_counts.m, aes(x=variable, y=value)) + geom_boxplot(aes(fill=Cells)) +
+co_stimulation_rnaseq<-ggplot(data = co_stimulation_markers_counts.m, aes(x=variable, y=value)) + geom_boxplot(aes(fill=Cells)) +
   stat_compare_means(aes(group = Cells), method = "t.test", label = "p.format", size= 2)
-salmon<-rnaseq+labs(x ="", y = "log2(normalized counts) RNA-seq")+scale_fill_manual(breaks = c("TC", "TIL"),
-                                                                                    values=c("brown", "violet"))+
-  theme(axis.text.x = element_text(face = "bold.italic", angle=0, vjust=0.5, hjust=0.5)) +
-  theme_classic() +
-  annotate("rect", xmin=-Inf, xmax=5.5, ymin=-Inf, ymax=Inf, fill = "violet", alpha = 0.1)
+co_stimulation<-co_stimulation_rnaseq+labs(x ="", y = "log2(normalized counts) RNA-seq")+
+  scale_fill_manual(breaks = c("TC", "TIL"), values=c("brown", "violet"))+
+  theme_classic()+
+  theme(axis.text.x = element_text(face = "bold.italic", angle=40, vjust=0.5, hjust=0.5))
+  
+###################
+#co_inhibition_T cells
+###################
 
-#Multipanel figure 1
+co_inhibition_markers<-c("BTLA", "CTLA4", "CD160", "CD244", "CD274", "HAVCR2",
+                         "LAIR1","LAG3", "PDCD1LG2","TIGIT", "VSIR")     
+                            
+#normalized data for selected ids
+co_inhibition_counts<-norm_counts[co_inhibition_markers, ]
+
+co_inhibition_counts<-t(co_inhibition_counts)
+
+co_inhibition_counts<-as.data.frame(co_inhibition_counts)
+
+co_inhibition_counts$Cells<-sapply(strsplit(as.character(row.names(co_inhibition_counts)), "_"), "[[", 2 )
+
+co_inhibition_counts.m <- melt(co_inhibition_counts, id.var = "Cells")
+
+co_inhibition_rnaseq<-ggplot(data = co_inhibition_counts.m, aes(x=variable, y=value)) + geom_boxplot(aes(fill=Cells)) +
+  stat_compare_means(aes(group = Cells), method = "t.test", label = "p.format", size= 2)
+co_inhibition_Tcells<-co_inhibition_rnaseq+labs(x ="", y = "log2(normalized counts) RNA-seq")+
+  scale_fill_manual(breaks = c("TC", "TIL"), values=c("brown", "violet"))+
+  theme_classic()+
+  theme(axis.text.x = element_text(face = "bold.italic", angle=40, vjust=0.5, hjust=0.5))
+  
+
+#Multipanel Figure
 library(multipanelfigure)
 
-figure2 <- multi_panel_figure(
+figure3 <- multi_panel_figure(
   width = 200, height = 200,
   columns = 1, rows = 2, row_spacing=5,
   column_spacing=5)
 
-figure2 %<>% fill_panel(salmon, column = 1, row = 1)
-figure2 %<>% fill_panel(expt2, column = 1, row = 2)
+figure3 %<>% fill_panel(co_stimulation, column = 1, row = 1)
+figure3 %<>% fill_panel(co_inhibition_Tcells, column = 1, row = 2)
+
 
 # Save figure
-figure2 %>% save_multi_panel_figure(filename = "./images/Supplementary_Figure_7.tiff", dpi = 600, compression = "lzw")
-
+figure3 %>% save_multi_panel_figure(filename = "./images/Supplementary_Figure_6.tiff", dpi = 600, compression = "lzw")
 

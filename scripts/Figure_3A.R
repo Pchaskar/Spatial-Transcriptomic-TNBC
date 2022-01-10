@@ -52,7 +52,7 @@ res_mcp_counter_all %>%
   ggplot(aes(x = sample, y = score, color = cell_type)) +
   geom_point(size = 4) +
   facet_wrap( ~ cell_type, scales = "free_x", ncol = 3) +
-  scale_color_brewer(palette = "Paired", guide = "none") +
+  scale_color_brewer(palette = "Paired", guide = FALSE) +
   coord_flip() +
   theme_bw() +
   theme(axis.text.x = element_text(
@@ -102,22 +102,19 @@ mcp_results_nomono$immnue_cells <-
   as.character(immnue_cells[mcp_results_nomono$cell_type])
 
 #Plot
-png(
-  "./images/Figure3A.png",
+tiff(
+  "./images/Figure3A.tiff",
   width = 7,
   height = 5,
   units = 'in',
-  res = 600
-#  compression =  "lzw+p"
+  res = 600,
+  compression =  "lzw+p"
 )
-
-mcp_results_nomono <-arrange(mcp_results_nomono, ct)
-
 ggplot(mcp_results_nomono,
        aes(x = Samples, y = `MCP-counter score`, color = immnue_cells)) +
   geom_point(size = 3) +
   facet_wrap( ~ immnue_cells, scales = "free_x", ncol = 5) +
-  scale_color_brewer( palette = "Paired", guide = "none") +
+  scale_color_brewer(palette = "Paired", guide = FALSE) +
   coord_flip() +
   theme_bw() +
   theme(

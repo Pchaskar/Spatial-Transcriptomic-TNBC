@@ -4,6 +4,7 @@
 
 # Path to the scripts
 library("rstudioapi")
+library("limma")
 
 # the following line is for getting the path of your current open file
 script_path <- getActiveDocumentContext()$path 
